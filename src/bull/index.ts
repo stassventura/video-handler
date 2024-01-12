@@ -8,9 +8,7 @@ const videoProcessingQueue = new Queue(
 
 videoProcessingQueue.process(async function (job, done) {
   try {
-    console.log(job);
     await startProcess(job);
-    console.log("Закончил обработку");
     done();
   } catch (err: unknown) {
     done(

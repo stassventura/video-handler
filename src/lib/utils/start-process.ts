@@ -1,29 +1,28 @@
 import bot from "../../bot";
 import { addTextToVideo } from "../../lib/utils/add-text-to-video";
+import deleteFile from "./remove-video";
 
 export const startProcess = async (job) => {
   return new Promise<void | string>(async (resolve, reject) => {
     try {
-      console.log("Начинаю обработку");
       await addTextToVideo(
         job.data.inputPath,
         job.data.outputPath,
         job.data.text,
+        job.data.fontName,
       );
-
-      // console.log(path.join(__dirname, '..', job.data.outputPath));
-      // const videoPath = path.join(__dirname, '..', job.data.outputPath);
-      const video =
-        "https://qc77dpzg-3000.euw.devtunnels.ms/data/videos-1704985662769.mp4";
-      console.log(2, job.data.outputPath, video);
-
-      await bot.telegram.sendMessage(job.data.chatId, video);
-      console.log(3);
-
-      resolve(); // Разрешить промис при успешном выполнении
+      await bot.telegram.sendVideo(job.data.chatId, {
+        source: job.data.outputPath,
+      });
+      try {
+        await deleteFile(job.data.outputPath, job.data.inputPath);
+      } catch (err) {
+        console.error(`Ошибка при удалении файла: ${err.message}`);
+      }
+      resolve();
     } catch (err) {
       console.error(err);
-      reject(typeof err === "string" ? err : "Ошибка при обработке видео"); // Отклонить промис в случае ошибки
+      reject(typeof err === "string" ? err : "Ошибка при обработке видео");
     }
   });
 };

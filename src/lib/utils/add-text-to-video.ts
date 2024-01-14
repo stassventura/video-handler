@@ -6,8 +6,8 @@ export const addTextToVideo = (
   outputPath: string,
   text: string,
   fontName: string,
-  fontSize: number = 24,
-  lineHeight: number = 30,
+  fontSize: number = 32,
+  lineHeight: number = 25,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(inputPath, (err, metadata) => {
@@ -16,7 +16,6 @@ export const addTextToVideo = (
           new Error("Ошибка при получении информации о видео: " + err.message),
         );
       }
-
       const videoStream = metadata.streams.find(
         (stream) => stream.codec_type === "video",
       );
@@ -30,20 +29,23 @@ export const addTextToVideo = (
       const totalTextHeight = lines.length * lineHeight;
       const startY = (videoHeight - totalTextHeight) / 2;
 
-      const videoFilters = lines.map((line, index) => ({
-        filter: "drawtext",
-        options: {
-          fontfile: `src/fonts/${fontName}.ttf`,
-          text: line,
-          fontsize: fontSize,
-          fontcolor: "white",
-          x: "(main_w/2-text_w/2)",
-          y: startY + index * lineHeight,
-          shadowcolor: "black",
-          shadowx: 2,
-          shadowy: 2,
-        },
-      }));
+      const videoFilters = lines.map((line, index) => {
+        const escapedLine = line.replace(/:/g, "\\\\:");
+        return {
+          filter: "drawtext",
+          options: {
+            fontfile: `src/fonts/${fontName}.ttf`,
+            text: escapedLine,
+            fontsize: fontSize,
+            fontcolor: "white",
+            x: "(main_w/2-text_w/2)",
+            y: startY + index * lineHeight,
+            shadowcolor: "black",
+            shadowx: 2,
+            shadowy: 2,
+          },
+        };
+      });
 
       ffmpeg(inputPath)
         .output(outputPath)

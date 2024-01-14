@@ -6,7 +6,7 @@ const videoProcessingQueue = new Queue(
   "redis://127.0.0.1:6379",
 );
 
-videoProcessingQueue.process(async function (job, done) {
+videoProcessingQueue.process(10, async function (job, done) {
   try {
     await startProcess(job);
     done();
